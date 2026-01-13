@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ACCOUNTING</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <style>
+        body {
+            text-align: left;
+            background-color: ghostwhite;
+        }
+        .button {
+            background-color: aquamarine;
+            border: none;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .nav-tabs {
+            justify-content: center;
+        }
+        .income-box, .expense-box, .profit-box, .loss-box {
+            height: 100px;
+            width: 200px;
+            background-color: whitesmoke;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 10px;
+            margin-left: 20px;
+        }
+        .button1 {
+            background-color: greenyellow;
+            margin-left: 20px;
+        }
+        .contain {
+            display: flex;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 0.5rem;
+            text-align: center;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body onload="loadFromLocal()">
+    <div class="container mt-4">
+        <h1>MyAccounting</h1>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link button active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">Summary</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link button" id="income-tab" data-bs-toggle="tab" data-bs-target="#income" type="button" role="tab">Income</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link button" id="expense-tab" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab">Expense</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link button" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link button" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button" role="tab">Edit</button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+            <div class="tab-pane fade show active" id="summary" role="tabpanel">
+                <div class="contain">
+                    <div class="income-box">
+                        <p><b>Total Income:</b></p>
+                        <span id="totalIncome">0</span>
+                    </div>
+                    <div class="expense-box">
+                        <p><b>Total Expense:</b></p>
+                        <span id="totalExpense">0</span>
+                    </div>
+                    <div class="profit-box">
+                        <p><b>Profit:</b></p>
+                        <span id="profit">0</span>
+                    </div>
+                    <div class="loss-box">
+                        <p><b>Loss:</b></p>
+                        <span id="loss">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="income" role="tabpanel">
+                <label for="incomeDate">Date:</label>
+                <input type="date" id="incomeDate" onchange="clearRows('incomeTable')">
+                <button class="button1" onclick="saveTransactions('income')">Save</button>
+                <table>
+                    <thead>
+                        <tr><th>S.No</th><th>Creditor</th><th>Amount</th><th>Narration</th></tr>
+                    </thead>
+                    <tbody id="incomeTable"></tbody>
+                </table>
+            </div>
+
+            <div class="tab-pane fade" id="expense" role="tabpanel">
+                <label for="expenseDate">Date:</label>
+                <input type="date" id="expenseDate" onchange="clearRows('expenseTable')">
+                <button class="button1" onclick="saveTransactions('expense')">Save</button>
+                <table>
+                    <thead>
+                        <tr><th>S.No</th><th>Debitor</th><th>Amount</th><th>Narration</th></tr>
+                    </thead>
+                    <tbody id="expenseTable"></tbody>
+                </table>
+            </div>
+
+            <div class="tab-pane fade" id="reports" role="tabpanel">
+                <label for="reportDate">Date:</label>
+                <input type="date" id="reportDate">
+                <label for="reportType" class="ms-3">Type:</label>
+                <select id="reportType">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+                <button class="button1" onclick="showReport()">Go</button>
+                <ul id="reportList"></ul>
+            </div>
+
+            <div class="tab-pane fade" id="edit" role="tabpanel">
+                <label for="editDate">Date:</label>
+                <input type="date" id="editDate">
+                <label for="editType">Type:</label>
+                <select id="editType">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+                <button class="button1" onclick="loadEditTable()">Load</button>
+                <button class="button1" onclick="saveEditedTransactions()">Save</button>
+                <table>
+                    <thead><tr><th>Name</th><th>Amount</th><th>Narration</th><th>Action</th></tr></thead>
+                    <tbody id="editTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let transactions = [];
+
+        function clearRows(tableId) {
+            const tbody = document.getElementById(tableId);
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 20; i++) {
+                const row = `<tr><td>${i}</td><td><input type="text"></td><td><input type="number"></td><td><input type="text"></td></tr>`;
+                tbody.innerHTML += row;
+            }
+        }
+
+        function saveTransactions(type) {
+            const date = document.getElementById(type + 'Date').value;
+            const rows = document.querySelectorAll('#' + type + 'Table tr');
+            transactions = transactions.filter(t => !(t.date === date && t.type === type));
+            const newEntries = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const name = inputs[0].value.trim();
+                const amount = parseFloat(inputs[1].value);
+                const narration = inputs[2].value.trim();
+                if (name && !isNaN(amount) && narration) {
+                    const isDuplicate = newEntries.some(e => e.name === name && e.amount === amount && e.narration === narration);
+                    if (!isDuplicate) {
+                        newEntries.push({ date, type, amount, name, narration });
+                    }
+                }
+            });
+            transactions.push(...newEntries);
+            updateTables();
+            saveToLocal(transactions);
+            clearRows(type + 'Table');
+        }
+
+        function updateTables() {
+            let income = 0, expense = 0;
+            transactions.forEach(t => {
+                if (t.type === 'income') income += t.amount;
+                else expense += t.amount;
+            });
+            document.getElementById('totalIncome').textContent = income;
+            document.getElementById('totalExpense').textContent = expense;
+            document.getElementById('profit').textContent = income > expense ? income - expense : 0;
+            document.getElementById('loss').textContent = expense > income ? expense - income : 0;
+        }
+
+        function showReport() {
+            const date = document.getElementById('reportDate').value;
+            const type = document.getElementById('reportType').value;
+            const list = document.getElementById('reportList');
+            list.innerHTML = '';
+            transactions.filter(t => t.date === date && t.type === type).forEach(t => {
+                const li = document.createElement('li');
+                li.textContent = `${t.name} - ₹${t.amount} (${t.narration})`;
+                list.appendChild(li);
+            });
+        }
+
+        function loadEditTable() {
+            const date = document.getElementById('editDate').value;
+            const type = document.getElementById('editType').value;
+            const editTable = document.getElementById('editTable');
+            editTable.innerHTML = '';
+            transactions.filter(t => t.date === date && t.type === type).forEach((t, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="text" value="${t.name}" onchange="editTransaction(${index}, 'name', this.value)"></td>
+                    <td><input type="number" value="${t.amount}" onchange="editTransaction(${index}, 'amount', parseFloat(this.value))"></td>
+                    <td><input type="text" value="${t.narration}" onchange="editTransaction(${index}, 'narration', this.value)"></td>
+                    <td><button onclick="deleteTransaction(${index})">Delete</button></td>
+                `;
+                editTable.appendChild(row);
+            });
+        }
+
+        function saveEditedTransactions() {
+            const date = document.getElementById('editDate').value;
+            const type = document.getElementById('editType').value;
+            const rows = document.querySelectorAll('#editTable tr');
+            transactions = transactions.filter(t => !(t.date === date && t.type === type));
+            const newEntries = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const name = inputs[0].value.trim();
+                const amount = parseFloat(inputs[1].value);
+                const narration = inputs[2].value.trim();
+                if (name && !isNaN(amount) && narration) {
+                    const isDuplicate = newEntries.some(e => e.name === name && e.amount === amount && e.narration === narration);
+                    if (!isDuplicate) {
+                        newEntries.push({ date, type, amount, name, narration });
+                    }
+                }
+            });
+            transactions.push(...newEntries);
+            updateTables();
+            saveToLocal(transactions);
+            document.getElementById('editTable').innerHTML = '';
+        }
+
+        function editTransaction(index, field, value) {
+            transactions[index][field] = value;
+            updateTables();
+            saveToLocal(transactions);
+        }
+
+        function deleteTransaction(index) {
+            transactions.splice(index, 1);
+            updateTables();
+            saveToLocal(transactions);
+            loadEditTable();
+        }
+
+        function saveToLocal(data) {
+            localStorage.setItem('data', JSON.stringify(data));
+        }
+
+        function loadFromLocal() {
+            const data = JSON.parse(localStorage.getItem('data'));
+            if (Array.isArray(data)) {
+                transactions = data;
+                updateTables();
+            }
+        }
+    </script>
+</body>
+</html>

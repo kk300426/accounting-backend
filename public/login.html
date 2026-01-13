@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="auth.js"></script>
+    <style>
+        body { font-family: Arial; background-image: url('bg.png');
+background-repeat: repeat;
+background-size: auto;
+background-position: top left;
+ margin: 0; padding: 0; }
+        .ff { margin: 10rem auto; width: 400px; padding: 2rem; background: rgba(255,255,255,0.5); border-radius: 10px; }
+        input, button { width: 100%; height: 35px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <form onsubmit="login(event)">
+        <fieldset class="ff">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <a href="create_account.html">Create Account</a><br>
+            <a href="forget_password.html">Forget Password?</a><br><br>
+            <button type="submit" style="background-color: aqua;">Login</button>
+        </fieldset>
+    </form>
+    <script>
+        function login(e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            if (validateLogin(email, password)) {
+                alert("Login successful!");
+                window.location.href = "perfect.html";
+            } else {
+                alert("Invalid email or password.");
+            }
+        }
+    </script>
+</body>
+</html>

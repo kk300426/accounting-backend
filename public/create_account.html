@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Account</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="auth.js"></script>
+        <style>
+        body { font-family: Arial;background-image: url('bg.png');
+background-repeat: repeat;
+background-size: auto;
+background-position: top left;
+ margin: 0; padding: 0; }
+        .ff { margin: 10rem auto; width: 400px; padding: 2rem; background: rgba(255,255,255,0.5); border-radius: 10px; }
+        input, button { width: 100%; height: 35px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <form onsubmit="createAccount(event)">
+        <fieldset class="ff">
+            <h2>Create Account</h2>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="pw1" placeholder="Password" required>
+            <input type="password" id="pw2" placeholder="Confirm Password" required>
+            <a href="login.html">Login to existing</a><br><br>
+            <button type="submit"style="background-color: aqua;">Sign Up</button>
+        </fieldset>
+    </form>
+    <script>
+        function createAccount(e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const pw1 = document.getElementById("pw1").value;
+            const pw2 = document.getElementById("pw2").value;
+            if (userExists(email)) return alert("User already exists.");
+            if (pw1 !== pw2) return alert("Passwords do not match.");
+            saveUser(email, pw1);
+            alert("Account created!");
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
