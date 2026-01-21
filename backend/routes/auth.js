@@ -1,26 +1,52 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const User = require('backend/models/User');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+
 const router = express.Router();
 
-// Register
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-  await User.create({ email, password: hashed });
-  res.json({ success: true });
+  try {
+    const { email, password } = req.body;
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await User.create({ email, password: hashed });
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ error: "User not found" });
+  try {
+    const { email, password } = req.body;
 
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(400).json({ error: "Wrong password" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' });
+    }
 
-  res.json({ success: true });
+    const ok = await bcrypt.compare(password, user.password);
+    if (!ok) {
+      return res.status(400).json({ error: 'Wrong password' });
+    }
+
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
