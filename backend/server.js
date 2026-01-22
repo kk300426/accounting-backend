@@ -1,45 +1,39 @@
-require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
-const authRoute = require("./routes/auth");
+require("dotenv").config();
 
 const app = express();
 
-/* Middlewares */
+/* Middleware */
 app.use(cors());
 app.use(express.json());
 
-/* Routes */
+/* ROUTES (IMPORTANT) */
+const authRoute = require("./routes/auth");
+
+console.log("TYPE authRoute:", typeof authRoute); // must be function
+
 app.use("/api/auth", authRoute);
 
-/* Root test route */
+/* Test route */
 app.get("/", (req, res) => {
   res.send("API running");
 });
 
-/* MongoDB connection */
-const MONGO_URI = process.env.MONGO_URI;
-
-if (!MONGO_URI) {
-  console.error("❌ MONGO_URI not defined");
-  process.exit(1); // Render will stop here if env missing
-}
-
+/* MongoDB */
 mongoose
-  .connect(MONGO_URI)
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB Connected");
-
-    const PORT = process.env.PORT || 5000;
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
+
+/* Server */
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
